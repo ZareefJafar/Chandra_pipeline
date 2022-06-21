@@ -28,22 +28,22 @@ from astropy import wcs
 #from scipy.stats import multivariate_normal
 
 ###--- Required ---> Make these directories if they do not exist 
-cluster = '"a1835"'     ##'"07 17 31.20" "+37 45 35.4"'#
-parentdir = '/home/jpbreuer/Chandra_data/a1835'# + cluster + '/'
+cluster = '"a2256"'     ##'"07 17 31.20" "+37 45 35.4"'#
+parentdir = '/home/zareef_otg/gc/Chandra_data/a2256'# + cluster + '/'
 specfile_outputdir = parentdir + '/specfile_output'
 XSPEC = True #keep one True and one False, not both True, else issues parsing + making maps
 SPEX = False
 
 #%%
 ###--- PreProcessing Flags ---> # Output from these flags results in a different code inside the prelim_products.sh 
-download_reprocess_data = True
-flare_filter = True # True to check for flaring in individual observations and to automate partial removal of pointsources
-merge_data = True
+download_reprocess_data = False
+flare_filter = False # True to check for flaring in individual observations and to automate partial removal of pointsources
+merge_data = False
 #!! After merge_data, pointsources must be excised and confirmed manually. See broad_thresh_sps.fits with regionfile pointsources_combo.fits
 no_emission = parentdir + '/regionfiles/src_0.5-7-nps-noem.reg'
 no_pointsources = parentdir + '/regionfiles/broad_src_0.5-7-pointsources.reg'
 fov_name = parentdir + '/regionfiles/square.reg' # or False
-
+fov=True #ZAREEF
 ###--- Image Analysis Algorithm Flags --->
 simple_hardnessmap = False
 # From this point it's assumed that merged observation has been reduced with square_fov
@@ -53,7 +53,7 @@ contourbin = True
 
 sn_per_region = 70; reg_smoothness = 100
 
-minx = 3069; miny = 3175
+minx = 2927; miny = 3233
 
 #!! Need to manually find dimensions (minx and miny) of broad_thresh_square_sps.fits for producing the regions
 # sn approx sqrt number of counts: 40k = 200, 20k = 141.42, 10k = 100, 5k = 70.71
@@ -78,6 +78,8 @@ compresseddir = specfile_outputdir + '/compressed_sn' + str(sn_per_region) + '_s
 mapsdir = resultsdir + '/maps'
 
 
+
+mode_obsid=['VFAINT','VFAINT','VFAINT','VFAINT']
 #%%
 ###--- PIPELINE STARTS HERE! --->
 # could not deflare 965
@@ -85,12 +87,12 @@ mapsdir = resultsdir + '/maps'
 
 def main():
     #input no emission region, pointsources region, desired fov subset region 
-    PreProcessing(no_emission,no_pointsources,fov_name)
+    #PreProcessing(no_emission,no_pointsources,fov_name)
     #run ./preprocessing.sh
 
-#    Preliminary_Products()
+    #Preliminary_Products()
     #run ./preliminary_products.sh
-#    _RegCoordChange(regdir)
+    #_RegCoordChange(regdir)
     #run ./regcoordchange.sh
     
     Processing(sexdir)
@@ -98,15 +100,15 @@ def main():
     #run ./spexfitting.sh
     #run ./xspecfitting.sh
     
-    ParseOutput('/home/jpbreuer/Chandra_data/a2256/specfile_output/results_sn70_smooth100/')#resultsdir
+#    ParseOutput('/home/zareef_otg/gc/Chandra_data/a2256/specfile_output/results_sn70_smooth100/')#resultsdir
 #    FitRedshift('./regions-info-xspec-sn100.data')
-#    ParseRedshiftOutput('/home/jpbreuer/Chandra_data/a2256/specfile_output/results_sn100_smooth100/')
+#    ParseRedshiftOutput('/home/zareef_otg/gc/Chandra_data/a2256/specfile_output/results_sn100_smooth100/')
 #    MakeMaps('./regions-info-spex.data',binmap)
 #    MakeBasicMaps('./regions-info-xspec.data',binmap)
-#    MixedMaps('/home/jpbreuer/Chandra_data/a2256/specfile_output/results_sn70_smooth100/maps/temp_map.fits','/home/jpbreuer/Chandra_data/a2256/specfile_output/results_sn70_smooth100/maps/temp_error_map.fits','/home/jpbreuer/Chandra_data/a2256/specfile_output/results_sn70_smooth100/maps/density_map.fits','/home/jpbreuer/Chandra_data/a2256/specfile_output/results_sn70_smooth100/maps/density_errordepthmap.fits')
-    CleanUp(mapsdir)
+#    MixedMaps('/home/zareef_otg/gc/Chandra_data/a2256/specfile_output/results_sn70_smooth100/maps/temp_map.fits','/home/zareef_otg/gc/Chandra_data/a2256/specfile_output/results_sn70_smooth100/maps/temp_error_map.fits','/home/zareef_otg/gc/Chandra_data/a2256/specfile_output/results_sn70_smooth100/maps/density_map.fits','/home/zareef_otg/gc/Chandra_data/a2256/specfile_output/results_sn70_smooth100/maps/density_errordepthmap.fits')
+    #CleanUp(mapsdir)
     
-#    TrendMaps('/home/jpbreuer/Chandra_data/a2256/specfile_output/results_sn70_smooth100/maps/temp_map.fits')
+#    TrendMaps('/home/zareef_otg/gc/Chandra_data/a2256/specfile_output/results_sn70_smooth100/maps/temp_map.fits')
 
 
 
@@ -114,7 +116,7 @@ def main():
 #%%
 ###--- This is where the magic happens --->
 
-def PreProcessing(no_emission_reg,pointsources_reg,fov):#region file with no pointsources or cluster emission
+def PreProcessing(no_emission,no_pointsources,fov_name): #region file with no pointsources or cluster emission 
     
     
 #    file = open('preprocessing.sh', 'w')
@@ -132,10 +134,10 @@ def PreProcessing(no_emission_reg,pointsources_reg,fov):#region file with no poi
         file.write('cd ' + parentdir + '\n')
         dldata = 'download_chandra_obsid ' + obsids_fullstr
         file.write(dldata + '\n')
-        mode_obsid = []
+        #mode_obsid = ['FAINT']*(len(obsids))
         for ii in list(range(len(obsids))):
             file.write('rm -rf ' + obsids[ii] + '/repro\n')
-            mode_obsid.append(os.popen('dmkeypar ' + parentdir + '/' + obsids[ii] + '/primary/*evt2.fits.gz DATAMODE echo+').read().split()[0])
+            #mode_obsid.append(os.popen('dmkeypar ' + parentdir + '/' + obsids[ii] + '/primary/*evt2.fits.gz DATAMODE echo+').read().split()[0])
             #file.write('dmkeypar ' + obsids[ii] + '/primary/*evt2.fits.gz DATAMODE echo+')
             #mode_obsid = mode_obsid.split()
             #file.write(str(mode_obsid))
@@ -150,6 +152,7 @@ def PreProcessing(no_emission_reg,pointsources_reg,fov):#region file with no poi
     if flare_filter:
         file.write("echo 'Extract Light Curves for Deflaring'\n")
         file.write('cd ' + parentdir + '\n')
+        #mode_obsid = ['FAINT']*(len(obsids))
         for ii in list(range(len(obsids))):
             file.write('cd '+ parentdir + '/' + obsids[ii] + '\n')
             bpix = os.popen('ls ' + parentdir + '/' + obsids[ii] + '/repro/*repro_bpix1*').read()
@@ -163,13 +166,13 @@ def PreProcessing(no_emission_reg,pointsources_reg,fov):#region file with no poi
             
             file.write("echo 'Make GTI for deflaring observations'\n\n")
 #            file.write('punlearn dmcopy\ndmcopy "acisf' + obsids_padded[ii] + '_repro_evt2.fits[exclude sky=region(' + no_emission_reg + ')]" ' + obsids[ii] + '_nosources.evt option=all clobber=yes\n')
-            file.write('punlearn dmcopy\ndmcopy "acisf' + obsids_padded[ii] + '_repro_evt2.fits[exclude sky=region(' + obsids[ii] + '_src_0.5-7-noem.reg)]" ' + obsids[ii] + '_nosources.evt option=all clobber=yes\n')
+            file.write('punlearn dmcopy\ndmcopy "acisf' + obsids_padded[ii] + '_repro_evt2.fits[exclude sky=region(' + obsids[ii] + '_src_0.5-7.reg)]" ' + obsids[ii] + '_nosources.evt option=all clobber=yes\n')
             file.write('punlearn dmcopy\ndmcopy "' + obsids[ii] + '_nosources.evt[energy=500:7000]" ' + obsids[ii] + '_0.5-7_nosources.evt option=all clobber=yes\n')
             file.write('punlearn dmextract\ndmextract "' + obsids[ii] + '_0.5-7_nosources.evt[bin time=::259.28]" ' + obsids[ii] + '_0.5-7.lc opt=ltc1 clobber=yes\n')
             file.write('punlearn deflare\ndeflare ' + obsids[ii] + '_0.5-7.lc ' + obsids[ii] + '_0.5-7.gti method=clean\n')
             file.write('punlearn dmcopy\ndmcopy "acisf' + obsids_padded[ii] + '_repro_evt2.fits[@' + obsids[ii] + '_0.5-7.gti]" acisf' + obsids_padded[ii] + '_clean_evt.fits opt=all clobber=yes\n\n')
             file.write("echo 'Make background with GTI'\n\n")
-            mode_obsid.append(os.popen('dmkeypar ' + parentdir + '/' + obsids[ii] + '/primary/*evt2.fits.gz DATAMODE echo+').read().split())
+            #mode_obsid.append(os.popen('dmkeypar ' + parentdir + '/' + obsids[ii] + '/primary/*evt2.fits.gz DATAMODE echo+').read().split())
             if mode_obsid[ii] == 'VFAINT':
                 file.write('punlearn blanksky\nblanksky evtfile="acisf' + obsids_padded[ii] + '_repro_evt2.fits[@' + obsids[ii] + '_0.5-7.gti]" outfile=' + obsids[ii] + '_vfbackground_clean.evt tmpdir=./ clobber=yes\n')
                 file.write('punlearn dmcopy\ndmcopy "' + obsids[ii] + '_vfbackground_clean.evt[status=0]" ' + obsids[ii] + '_background_clean.evt clobber=yes\n\n')
@@ -180,17 +183,17 @@ def PreProcessing(no_emission_reg,pointsources_reg,fov):#region file with no poi
             file.write('blanksky_image bkgfile=' + obsids[ii] + '_background_clean.evt outroot=' + obsids[ii] + '_blank imgfile=' + obsids[ii] + '_0.5-7_thresh.img tmpdir=./ clobber=yes\n\n')
     
     if merge_data:
-        file.write("echo 'Merge all Observations'\n")
-        file.write('cd ' + parentdir + '\n')
-        file.write('find "$(pwd)" -name "acisf*clean*" > cleanevt2.list\n')
-        file.write('punlearn merge_obs\nmerge_obs @cleanevt2.list ' + parentdir + '/merged/ bin=1 bands=broad,csc clobber=yes\n')
-        file.write("echo 'Merge all Observations... Done!'\n\n")
-        #file.write("echo 'Combining all observation pointsource region files'\n")
-        #file.write('ds9 ' + parentdir +'/merged/broad_thresh.img &\nsleep 10\nxpaset -p ds9 lower\n')
-        #for ii in list(range(len(obsids))): 
-        #    file.write('xpaset -p ds9 regions load ' + parentdir + '/' + obsids[ii] + '/repro/pointsources.fits\n')
-        #file.write('xpaset -p ds9 regions format ciao\nxpaset -p ds9 regions system wcs\nxpaset -p ds9 regions skyformat sexagesimal\nxpaset -p ds9 regions save ' + parentdir + '/merged/pointsources_combo.fits\nxpaset -p ds9 exit\n')
-        #file.write("echo 'Combining all observation pointsource regionfiles... Done!'\n\n")
+        # file.write("echo 'Merge all Observations'\n")
+        # file.write('cd ' + parentdir + '\n')
+        # file.write('find "$(pwd)" -name "acisf*clean*" > cleanevt2.list\n')
+        # file.write('punlearn merge_obs\nmerge_obs @cleanevt2.list ' + parentdir + '/merged/ bin=1 bands=broad,csc clobber=yes\n')
+        # file.write("echo 'Merge all Observations... Done!'\n\n")
+        # #file.write("echo 'Combining all observation pointsource region files'\n")
+        # #file.write('ds9 ' + parentdir +'/merged/broad_thresh.img &\nsleep 10\nxpaset -p ds9 lower\n')
+        # #for ii in list(range(len(obsids))): 
+        # #    file.write('xpaset -p ds9 regions load ' + parentdir + '/' + obsids[ii] + '/repro/pointsources.fits\n')
+        # #file.write('xpaset -p ds9 regions format ciao\nxpaset -p ds9 regions system wcs\nxpaset -p ds9 regions skyformat sexagesimal\nxpaset -p ds9 regions save ' + parentdir + '/merged/pointsources_combo.fits\nxpaset -p ds9 exit\n')
+        # #file.write("echo 'Combining all observation pointsource regionfiles... Done!'\n\n")
         
         def _mkmap(input,output,head):
             #hdu = fits.PrimaryHDU(input)
@@ -222,13 +225,13 @@ def PreProcessing(no_emission_reg,pointsources_reg,fov):#region file with no poi
         file.write('wavdetect infile=broad_thresh.img psffile=none expfile=broad_thresh.expmap outfile=src_0.5-7.fits scellfile=scell_0.5-7.fits imagefile=imgfile_0.5-7.fits defnbkgfile=nbkg_0.5-7.fits regfile=broad_src_0.5-7.reg scales="1 2 4 8 16 32" maxiter=3 sigthresh=5e-6 ellsigma=5.0 clobber=yes\n\n')
         file.write("echo 'CHECK AND CORRECT THE POINT SOURCE REGIONS'\n\n")
 #        file.write('dmcopy "broad_thresh.img[exclude sky=region(' + pointsources_reg + ')]" broad_thresh_sps.fits clobber=yes\n')
-        file.write('dmcopy "scaled_broad_flux.fits[exclude sky=region(' + pointsources_reg + ')]" scaled_broad_flux_sps.fits clobber=yes\n')
+        file.write('dmcopy "scaled_broad_flux.fits[exclude sky=region(' + no_pointsources + ')]" scaled_broad_flux_sps.fits clobber=yes\n')
         file.write("echo 'Removing Point Sources... Done!'\n\n")
     
         if fov:
             file.write("echo 'Reducing FOV to specific region'\n")
 #            file.write('dmcopy "broad_thresh_sps.fits[sky=region(' + fov + ')]" broad_thresh_square_sps.fits clobber=yes\n')
-            file.write('dmcopy "scaled_broad_flux_sps.fits[sky=region(' + fov + ')]" scaled_broad_flux_fov_sps.fits clobber=yes\n')
+            file.write('dmcopy "scaled_broad_flux_sps.fits[sky=region(' + fov_name + ')]" scaled_broad_flux_fov_sps.fits clobber=yes\n')
             file.write("echo 'Reducing FOV to specific region... Done!'\n\n")
         else:
             file.write("echo 'Renaming broad_thresh'\n")
@@ -257,18 +260,18 @@ def FindData(input):
     obsids_fullstr = ','.join(map(str, obsids)) 
     return obsids, obsids_padded, obsids_fullstr
 
-obsids, obsids_padded, obsids_fullstr = FindData(cluster)
+
+# obsids, obsids_padded, obsids_fullstr = FindData(cluster)
 
 #######################
-#obsids = obsids[3:]
-#obsids_padded = obsids_padded[3:]
+# obsids = obsids[3:]
+# obsids_padded = obsids_padded[3:]
 #######################
 ###--- OPTIONAL --->
-#obsids = ['2419','16129','16514','16515','16516']
-#obsids_padded = ['02419','16129','16514','16515','16516']
-#obsid_fullstr = '02419 16129 16514 16515 16516'
+obsids = ['16129','16514','16515','16516']
+obsids_padded = ['16129','16514','16515','16516']
+obsids_fullstr = '16129,16514,16515,16516'
 #######################
-
 #%%
 def Preliminary_Products():
     file = open('preliminary_products.sh', 'w')
@@ -560,6 +563,7 @@ def ParseOutput(inputdir):
         
         #loop over regions here
         for ii in list(range(sexnum)):#regnum
+            
             regdata = open(inputdir + '/xspec/reg_' + str(ii) + '_data.xcm','r')
             info = regdata.read().split()
             
