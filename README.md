@@ -37,9 +37,9 @@ Follow this [INSTALLATION](https://heasarc.gsfc.nasa.gov/lheasoft/ubuntu.html) t
 
 **6.[Downloda and install Contour binning and accumulative smoothing software](https://github.com/jeremysanders/contbin)**
 
-Type "git clone https://github.com/jeremysanders/contbin"
+Open terminal type "git clone https://github.com/jeremysanders/contbin"
 
-Open terminal and go to the downloaded folder.
+Go to the downloaded folder directory.
 
 Type "make" and press enter.
 
