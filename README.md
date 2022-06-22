@@ -27,14 +27,21 @@ unzip the files to ~/anaconda3/envs/ciao-4.14/CALDB (e.g. /home/zareef_otg/anaco
 
 
 **5.[Download and install HEASOFT Software:](https://heasarc.gsfc.nasa.gov/lheasoft/download.html)**
+
 Select "Source Code" and check "PC - Linux - Ubuntu" in "STEP 1 - Select the type of software"
+
 Select all in "STEP 2 - Download the desired packages" and click submit.
+
 Follow this [INSTALLATION](https://heasarc.gsfc.nasa.gov/lheasoft/ubuntu.html) to install HEASOFT.
 
 
 **6.[Downloda and install Contour binning and accumulative smoothing software](https://github.com/jeremysanders/contbin)**
+
 Type "git clone https://github.com/jeremysanders/contbin"
+
 Open terminal and go to the downloaded folder.
+
 Type "make" and press enter.
+
 Then type make install and press enter.
 
