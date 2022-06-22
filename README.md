@@ -43,5 +43,5 @@ Go to the downloaded folder directory.
 
 Type "make" and press enter.
 
-Then type make install and press enter.
+Then type "make install" and press enter.
 
